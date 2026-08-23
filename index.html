@@ -1,0 +1,2480 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <!-- viewport-fit=cover + maximum-scale livre: acessibilidade preservada -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#FBF6F0">
+  <meta name="description" content="Calcule quanto cobrar por bolos, doces e encomendas sem vender no prejuízo.">
+  <title>Calculadora da Confeiteira</title>
+  <style>
+/* ==========================================================================
+   Calculadora da Confeiteira — estilos
+   Mobile-first. Testado a partir de 320px de largura.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Variáveis de cor e espaçamento (identidade visual)
+   -------------------------------------------------------------------------- */
+:root {
+  /* Cores */
+  --bege:            #FBF6F0;  /* fundo geral, off-white quente */
+  --bege-escuro:     #F3E9DE;
+  --branco:          #FFFFFF;
+  --principal:       #965049;  /* terracota escurecida para melhor contraste */
+  --principal-forte: #783D38;
+  --principal-claro: #F7ECEA;
+  --apoio:           #5D714E;  /* verde escurecido para texto e botões acessíveis */
+  --apoio-claro:     #EEF2E9;
+  --dourado:         #C9A227;
+  --alerta:          #835421;
+  --alerta-claro:    #FAF1E4;
+  --perigo:          #B3453F;
+  --texto:           #3A3330;  /* cinza escuro */
+  --texto-suave:     #6D605A;
+  --borda:           #EADFD3;
+
+  /* Formas e espaços */
+  --raio:      16px;
+  --raio-g:    22px;
+  --sombra:    0 2px 10px rgba(88, 61, 50, .06);
+  --sombra-g:  0 6px 22px rgba(88, 61, 50, .10);
+  --largura:   560px; /* largura máxima do conteúdo no desktop */
+}
+
+/* --------------------------------------------------------------------------
+   2. Reset leve e base
+   -------------------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bege);
+  color: var(--texto);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, sans-serif;
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { margin: 0 0 8px; line-height: 1.25; font-weight: 700; }
+h1 { font-size: 1.7rem; letter-spacing: -.01em; }
+h2 { font-size: 1.35rem; }
+h3 { font-size: 1.05rem; }
+p  { margin: 0 0 12px; }
+
+.oculto { display: none !important; }
+
+/* --------------------------------------------------------------------------
+   3. Estrutura: cabeçalho, conteúdo, rodapé
+   -------------------------------------------------------------------------- */
+.topo {
+  background: var(--branco);
+  border-bottom: 1px solid var(--borda);
+  padding: 12px 20px;
+  padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.topo-marca {
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--principal);
+}
+
+.conteudo {
+  max-width: var(--largura);
+  margin: 0 auto;
+  padding: 20px 18px 40px;
+}
+
+.rodape {
+  max-width: var(--largura);
+  margin: 0 auto;
+  padding: 0 18px calc(28px + env(safe-area-inset-bottom, 0px));
+  text-align: center;
+}
+.rodape p {
+  font-size: .8rem;
+  color: var(--texto-suave);
+  margin: 0;
+}
+.rodape .mapa-chamada { margin-top: 8px; }
+.rodape a {
+  color: var(--principal-forte);
+  font-weight: 700;
+  text-underline-offset: 3px;
+}
+
+/* Telas — só uma visível por vez */
+.tela { animation: entrar .25s ease both; }
+
+@keyframes entrar {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tela { animation: none; }
+  * { transition: none !important; }
+}
+
+.secao-sub {
+  color: var(--texto-suave);
+  font-size: .95rem;
+  margin-bottom: 20px;
+}
+
+/* --------------------------------------------------------------------------
+   4. Tela inicial
+   -------------------------------------------------------------------------- */
+.hero {
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-g);
+  box-shadow: var(--sombra-g);
+  padding: 32px 22px 26px;
+  text-align: center;
+}
+
+.hero-icone {
+  width: 74px;
+  height: 74px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  background: var(--principal-claro);
+  color: var(--principal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hero-icone svg { width: 42px; height: 42px; }
+
+.hero-sub {
+  color: var(--texto-suave);
+  font-size: 1rem;
+  margin: 10px auto 24px;
+  max-width: 34ch;
+}
+
+.hero-nota {
+  font-size: .85rem;
+  color: var(--texto-suave);
+  margin: 18px auto 0;
+  max-width: 36ch;
+}
+
+/* Hero compacto: usado quando já existem produtos salvos.
+   A lista de produtos passa a ser o assunto principal da tela. */
+.hero--compacto {
+  padding: 20px 18px;
+  margin-top: 24px;
+}
+.hero--compacto .hero-icone,
+.hero--compacto .hero-sub,
+.hero--compacto .hero-nota { display: none; }
+
+/* O título já está no cabeçalho fixo. Some da vista, mas continua
+   disponível para leitores de tela. */
+.hero--compacto h1 {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Quando a lista de produtos é o primeiro elemento da tela */
+.bloco-produtos:first-child { margin-top: 4px; }
+
+.lista-beneficios {
+  list-style: none;
+  margin: 22px 0 0;
+  padding: 0;
+}
+.lista-beneficios li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: .93rem;
+  color: var(--texto-suave);
+  padding: 7px 4px;
+}
+.lista-beneficios .marca {
+  color: var(--apoio);
+  font-weight: 700;
+  flex: none;
+}
+
+/* Convite para criar um atalho no celular ou computador */
+.bloco-atalho {
+  background: var(--apoio-claro);
+  border: 1px solid #D5DFC9;
+  border-radius: var(--raio);
+  padding: 18px;
+  margin-top: 22px;
+}
+.bloco-atalho-cabecalho {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.atalho-icone {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: var(--apoio);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+.bloco-atalho h2 { font-size: 1.05rem; margin-bottom: 4px; }
+.bloco-atalho p { color: var(--texto-suave); font-size: .9rem; margin: 0; }
+.bloco-atalho .btn { margin-top: 14px; }
+
+/* --------------------------------------------------------------------------
+   4b. Meus produtos (histórico salvo)
+   -------------------------------------------------------------------------- */
+.bloco-produtos { margin-top: 30px; }
+.bloco-produtos h2 { font-size: 1.2rem; }
+.bloco-produtos .secao-sub { margin-bottom: 14px; }
+
+.lista-produtos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+/* Cada produto é um botão inteiro — alvo de toque grande */
+.produto-btn {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 6px 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 14px 16px;
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra);
+  font: inherit;
+  text-align: left;
+  color: var(--texto);
+  cursor: pointer;
+  transition: border-color .15s ease, transform .08s ease, box-shadow .15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.produto-btn:hover {
+  border-color: var(--principal);
+  box-shadow: var(--sombra-g);
+}
+.produto-btn:active { transform: scale(.99); }
+
+.produto-nome {
+  font-weight: 700;
+  font-size: .98rem;
+  line-height: 1.35;
+  /* Nomes longos ocupam no máximo 2 linhas */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.produto-preco {
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--principal);
+  white-space: nowrap;
+  justify-self: end;
+}
+
+.produto-meta {
+  grid-column: 1 / -1;
+  font-size: .78rem;
+  color: var(--texto-suave);
+}
+
+/* --------------------------------------------------------------------------
+   5. Botões
+   -------------------------------------------------------------------------- */
+.btn {
+  display: block;
+  width: 100%;
+  min-height: 56px;               /* alvo de toque confortável */
+  padding: 15px 20px;
+  border: none;
+  border-radius: var(--raio);
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color .15s ease, transform .08s ease, opacity .15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn + .btn { margin-top: 10px; }
+.btn:active { transform: scale(.985); }
+
+.btn--principal {
+  background: var(--principal);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(180, 99, 90, .28);
+}
+.btn--principal:hover { background: var(--principal-forte); }
+
+.btn--apoio {
+  background: var(--apoio);
+  color: #fff;
+}
+.btn--apoio:hover { filter: brightness(.94); }
+
+.btn--secundario {
+  background: var(--branco);
+  color: var(--principal);
+  border: 1.5px solid var(--principal);
+}
+.btn--secundario:hover { background: var(--principal-claro); }
+
+.btn--texto {
+  background: transparent;
+  color: var(--texto-suave);
+  font-weight: 600;
+  font-size: .95rem;
+  min-height: 48px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.btn--texto:hover { color: var(--texto); }
+.btn--perigo { color: var(--perigo); }
+
+.btn--largo { margin-top: 8px; }
+
+.btn-voltar {
+  background: none;
+  border: none;
+  color: var(--principal);
+  font: inherit;
+  font-size: .95rem;
+  font-weight: 600;
+  padding: 8px 4px;
+  margin: 0 0 12px -4px;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+/* Foco visível para teclado (acessibilidade) */
+:focus-visible {
+  outline: 3px solid var(--principal);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* --------------------------------------------------------------------------
+   6. Formulário
+   -------------------------------------------------------------------------- */
+.campo { margin-bottom: 22px; }
+
+.campo label {
+  display: block;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+.grupo-rotulo {
+  display: block;
+  font-weight: 700;
+  font-size: 1rem;
+  margin: 0 0 8px;
+}
+
+input[type="text"], select, textarea {
+  width: 100%;
+  min-height: 54px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--branco);
+  color: var(--texto);
+  font-family: inherit;
+  font-size: 1.05rem;      /* >=16px evita zoom automático no iOS */
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+input[type="text"]::placeholder { color: #C2B5AD; }
+textarea {
+  min-height: 112px;
+  resize: vertical;
+  line-height: 1.5;
+}
+select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--texto-suave) 50%),
+                    linear-gradient(135deg, var(--texto-suave) 50%, transparent 50%);
+  background-position: calc(100% - 20px) 23px, calc(100% - 14px) 23px;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 42px;
+}
+input[type="text"]:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--principal);
+  box-shadow: 0 0 0 3px var(--principal-claro);
+}
+
+.linha-quantidade {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(145px, .9fr);
+  gap: 10px;
+}
+.subcampo label {
+  font-size: .85rem;
+  color: var(--texto-suave);
+  margin: 0 2px 6px;
+}
+
+/* Campo com prefixo "R$" */
+.input-moeda, .input-sufixo {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--branco);
+  overflow: hidden;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.input-moeda:focus-within, .input-sufixo:focus-within {
+  border-color: var(--principal);
+  box-shadow: 0 0 0 3px var(--principal-claro);
+}
+.input-moeda input, .input-sufixo input {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  flex: 1;
+  min-width: 0;
+}
+.input-moeda input:focus, .input-sufixo input:focus {
+  box-shadow: none;
+  border-color: transparent;
+}
+
+.prefixo, .sufixo {
+  font-weight: 700;
+  color: var(--texto-suave);
+  flex: none;
+  padding: 0 4px;
+  user-select: none;
+}
+.prefixo { padding-left: 16px; }
+.sufixo  { padding-right: 16px; font-size: .95rem; }
+
+.ajuda {
+  font-size: .85rem;
+  color: var(--texto-suave);
+  margin: 8px 2px 0;
+}
+
+.erro {
+  font-size: .87rem;
+  color: var(--perigo);
+  font-weight: 600;
+  margin: 6px 2px 0;
+  display: none;
+}
+.erro.visivel { display: block; }
+
+/* Estado de erro no campo */
+.campo--erro input[type="text"],
+.campo--erro select,
+.campo--erro .input-moeda,
+.campo--erro .input-sufixo {
+  border-color: var(--perigo);
+  background: #FDF4F3;
+}
+
+.aviso-geral {
+  background: #FDF4F3;
+  border: 1.5px solid #F0D3D1;
+  color: var(--perigo);
+  border-radius: var(--raio);
+  padding: 14px 16px;
+  font-size: .92rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.divisor {
+  border: none;
+  border-top: 1px solid var(--borda);
+  margin: 28px 0;
+}
+
+/* Aviso de que os campos vieram de um produto salvo */
+.dica-preenchido {
+  background: var(--apoio-claro);
+  border: 1px solid #DFE6D4;
+  color: #5E7050;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: .85rem;
+  font-weight: 600;
+  margin: 10px 0 0;
+}
+
+/* Aviso de valores salvos há muito tempo */
+.aviso-antigo {
+  background: var(--alerta-claro);
+  border: 1px solid #EEDFC6;
+  color: var(--alerta);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: .87rem;
+  font-weight: 600;
+  margin: 0 0 16px;
+}
+
+/* Chips de sugestão rápida */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.chip {
+  min-height: 42px;
+  padding: 8px 16px;
+  border: 1.5px solid var(--borda);
+  border-radius: 999px;
+  background: var(--branco);
+  color: var(--texto-suave);
+  font: inherit;
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.chip:hover { border-color: var(--principal); color: var(--principal); }
+.chip--ativo {
+  background: var(--principal-claro);
+  border-color: var(--principal);
+  color: var(--principal-forte);
+}
+
+/* Assistente opcional para descobrir o valor da hora */
+.assistente-hora {
+  background: var(--principal-claro);
+  border: 1px solid #DFC7C3;
+  border-radius: var(--raio);
+  padding: 16px;
+  margin-top: 12px;
+}
+.assistente-hora h3 { margin-bottom: 4px; }
+.assistente-hora .secao-sub { margin-bottom: 14px; }
+.assistente-grade {
+  display: grid;
+  gap: 14px;
+}
+.assistente-hora .campo { margin-bottom: 0; }
+.assistente-hora .btn { margin-top: 14px; }
+.assistente-resultado {
+  color: var(--apoio);
+  font-weight: 700;
+  margin: 10px 2px 0;
+}
+
+.ajuda-destaque {
+  background: var(--apoio-claro);
+  border-left: 4px solid var(--apoio);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-top: 10px;
+  color: var(--texto);
+}
+
+/* --------------------------------------------------------------------------
+   7. Resultados
+   -------------------------------------------------------------------------- */
+.grade-cards {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.card {
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra);
+  padding: 18px 18px 16px;
+}
+
+.card-rotulo {
+  display: block;
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--texto-suave);
+  margin-bottom: 4px;
+}
+
+.card-valor {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  line-height: 1.2;
+}
+
+.card-nota {
+  display: block;
+  font-size: .8rem;
+  color: var(--texto-suave);
+  margin-top: 6px;
+}
+
+/* Card principal */
+.card--destaque {
+  background: var(--principal);
+  border-color: var(--principal);
+  box-shadow: var(--sombra-g);
+  text-align: center;
+  padding: 26px 20px 22px;
+  margin-bottom: 12px;
+}
+.card--destaque .card-rotulo,
+.card--destaque .card-nota { color: rgba(255,255,255,.82); }
+.card--destaque .card-valor { color: #fff; }
+.card-valor--grande { font-size: 2.5rem; }
+.card-calculado {
+  display: block;
+  color: #fff;
+  font-size: .88rem;
+  margin-top: 10px;
+}
+.card-calculado strong { font-weight: 700; }
+
+.card--alerta { background: var(--alerta-claro); border-color: #EEDFC6; }
+.card--alerta .card-valor { color: var(--alerta); }
+
+.card--positivo { background: var(--apoio-claro); border-color: #DFE6D4; }
+.card--positivo .card-valor { color: var(--apoio); }
+
+/* Bloco de explicação */
+.bloco-explicacao {
+  background: var(--bege-escuro);
+  border-radius: var(--raio);
+  padding: 20px 18px;
+  margin-bottom: 24px;
+}
+.bloco-explicacao p {
+  margin: 0;
+  font-size: .95rem;
+  color: var(--texto);
+}
+
+/* Bloco da mensagem de WhatsApp */
+.bloco-whats { margin-bottom: 28px; }
+
+.balao {
+  background: var(--apoio-claro);
+  border: 1px solid #DFE6D4;
+  border-radius: 16px 16px 16px 4px;
+  padding: 16px 18px;
+  font-size: .95rem;
+  line-height: 1.6;
+  white-space: pre-wrap;   /* respeita quebras de linha da mensagem */
+  word-break: break-word;
+  margin-bottom: 12px;
+}
+
+.acoes-finais { margin-top: 8px; }
+
+/* Sugestões sem banco de dados: a mensagem abre no e-mail configurado */
+.bloco-feedback {
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  padding: 20px 18px;
+  margin-top: 28px;
+}
+.bloco-feedback .secao-sub { margin-bottom: 12px; }
+.bloco-feedback label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.bloco-feedback .btn { margin-top: 10px; }
+.feedback-nota {
+  font-size: .8rem;
+  color: var(--texto-suave);
+  margin: 10px 2px 0;
+}
+
+/* --------------------------------------------------------------------------
+   8. Janelas de confirmação e de ajuda
+   -------------------------------------------------------------------------- */
+body.modal-aberto { overflow: hidden; }
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(45, 36, 32, .68);
+  backdrop-filter: blur(3px);
+  animation: aparecer-modal .18s ease both;
+}
+
+@keyframes aparecer-modal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-card {
+  position: relative;
+  width: min(100%, 520px);
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: 24px 24px 18px 18px;
+  box-shadow: 0 18px 55px rgba(45, 36, 32, .28);
+  padding: 24px 20px 20px;
+}
+
+.modal-card--guia { width: min(100%, 620px); }
+
+.modal-icone-aviso {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: #FBE9E7;
+  color: var(--perigo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.modal-card--confirmacao { text-align: center; }
+.modal-card--confirmacao h2 { font-size: 1.3rem; }
+.modal-texto {
+  color: var(--texto-suave);
+  font-size: .95rem;
+  margin: 8px auto 20px;
+  max-width: 42ch;
+}
+
+.modal-acoes { display: grid; gap: 10px; }
+.btn--perigo-solido {
+  background: var(--perigo);
+  color: #fff;
+}
+.btn--perigo-solido:hover { filter: brightness(.92); }
+
+.modal-fechar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: var(--bege-escuro);
+  color: var(--texto);
+  font: inherit;
+  font-size: 1.35rem;
+  cursor: pointer;
+}
+
+.modal-card--guia > h2 { padding-right: 42px; }
+.modal-intro { color: var(--texto-suave); font-size: .93rem; }
+.aviso-atalho-local {
+  background: var(--alerta-claro);
+  border: 1px solid #E8D5B8;
+  border-radius: 13px;
+  color: var(--alerta);
+  padding: 12px 14px;
+  font-size: .87rem;
+  font-weight: 600;
+  margin: 14px 0;
+}
+.guia-atalho { display: grid; gap: 10px; margin: 16px 0; }
+.guia-passo {
+  border: 1px solid var(--borda);
+  border-radius: 14px;
+  padding: 14px 15px;
+}
+.guia-passo h3 { font-size: 1rem; margin-bottom: 6px; }
+.guia-passo ol, .guia-passo ul {
+  margin: 0;
+  padding-left: 22px;
+  color: var(--texto-suave);
+  font-size: .9rem;
+}
+.guia-passo li + li { margin-top: 4px; }
+.guia-nota {
+  color: var(--texto-suave);
+  font-size: .82rem;
+  margin: 0 0 14px;
+}
+
+/* --------------------------------------------------------------------------
+   9. Aviso flutuante (toast)
+   -------------------------------------------------------------------------- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  transform: translate(-50%, 20px);
+  max-width: min(92vw, 420px);
+  background: var(--texto);
+  color: #fff;
+  padding: 14px 20px;
+  border-radius: 14px;
+  font-size: .93rem;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: 0 8px 26px rgba(0,0,0,.22);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s ease, transform .22s ease;
+  z-index: 50;
+}
+.toast.visivel {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* --------------------------------------------------------------------------
+   10. Ajustes para telas maiores
+   -------------------------------------------------------------------------- */
+@media (min-width: 600px) {
+  body { font-size: 17px; }
+  h1 { font-size: 2rem; }
+  .conteudo { padding: 32px 24px 56px; }
+  .hero { padding: 40px 32px 32px; }
+  .grade-cards { grid-template-columns: 1fr 1fr; }
+  /* O card de lucro ocupa a linha inteira quando sobra espaço ímpar */
+  .grade-cards .card--positivo { grid-column: 1 / -1; }
+  .acoes-finais {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .acoes-finais .btn + .btn { margin-top: 0; }
+  .acoes-finais .btn--texto { grid-column: 1 / -1; }
+  .modal-overlay { align-items: center; padding: 24px; }
+  .modal-card { border-radius: 24px; padding: 28px; }
+  .modal-acoes { grid-template-columns: 1fr 1fr; }
+  .modal-acoes .btn + .btn { margin-top: 0; }
+  .guia-atalho { grid-template-columns: 1fr 1fr; }
+  .guia-passo--computador { grid-column: 1 / -1; }
+}
+
+/* Telas bem estreitas (360px e menos) */
+@media (max-width: 360px) {
+  .conteudo { padding: 16px 14px 32px; }
+  .card-valor--grande { font-size: 2.1rem; }
+  .hero { padding: 26px 18px 22px; }
+  h1 { font-size: 1.5rem; }
+  .linha-quantidade { grid-template-columns: 1fr; }
+}
+
+</style>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍰</text></svg>">
+</head>
+<body>
+
+  <!-- ===================== CABEÇALHO ===================== -->
+  <header class="topo" id="topo">
+    <span class="topo-marca">Calculadora da Confeiteira</span>
+  </header>
+
+  <main class="conteudo">
+
+    <!-- ===================== TELA 1: INÍCIO ===================== -->
+    <section class="tela tela--ativa" id="tela-inicio" aria-labelledby="titulo-inicio">
+      <div class="hero">
+        <div class="hero-icone" aria-hidden="true">
+          <!-- Ícone simples de bolo (SVG inline, sem dependências) -->
+          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 54h40V34c0-3-2-5-5-5H17c-3 0-5 2-5 5v20Z"/>
+            <path d="M12 41c4 0 4 4 8 4s4-4 8-4 4 4 8 4 4-4 8-4 4 4 8 4"/>
+            <path d="M32 29V19"/>
+            <path d="M32 15c2 0 3-1.5 3-3s-3-4-3-4-3 2-3 4 1 3 3 3Z" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
+
+        <h1 id="titulo-inicio">Calculadora da Confeiteira</h1>
+        <p class="hero-sub">
+          Calcule em poucos minutos quanto cobrar por bolos, doces e encomendas
+          sem vender no prejuízo.
+        </p>
+
+        <button type="button" class="btn btn--principal" id="btn-comecar">
+          Começar cálculo
+        </button>
+
+        <!-- Aparece só se existir um cálculo sem nome salvo no navegador -->
+        <button type="button" class="btn btn--texto oculto" id="btn-ultimo">
+          Ver meu último cálculo
+        </button>
+
+        <p class="hero-nota">
+          Ideal para quem vende bolos, doces, sobremesas, salgados ou encomendas artesanais.
+        </p>
+      </div>
+
+      <!-- Produtos salvos — aparece só depois do primeiro cálculo com nome -->
+      <section class="bloco-produtos oculto" id="bloco-produtos" aria-labelledby="titulo-produtos">
+        <h2 id="titulo-produtos">Meus produtos</h2>
+        <p class="secao-sub">Toque em um produto para ver o preço na hora, sem preencher nada.</p>
+        <ul class="lista-produtos" id="lista-produtos"></ul>
+      </section>
+
+      <ul class="lista-beneficios" id="lista-beneficios">
+        <li><span class="marca" aria-hidden="true">✓</span> Sem planilha e sem conta difícil</li>
+        <li><span class="marca" aria-hidden="true">✓</span> Descobre seu preço mínimo e o preço ideal</li>
+        <li><span class="marca" aria-hidden="true">✓</span> Gera a mensagem pronta pro WhatsApp</li>
+      </ul>
+
+      <section class="bloco-atalho" aria-labelledby="titulo-atalho">
+        <div class="bloco-atalho-cabecalho">
+          <span class="atalho-icone" aria-hidden="true">⌂</span>
+          <div>
+            <h2 id="titulo-atalho">Deixe a calculadora sempre à mão</h2>
+            <p>Veja como criar um atalho no celular ou no computador para abrir mais rápido.</p>
+          </div>
+        </div>
+        <button type="button" class="btn btn--secundario" id="btn-ver-atalho">
+          Como criar um atalho
+        </button>
+      </section>
+    </section>
+
+    <!-- ===================== TELA 2: FORMULÁRIO ===================== -->
+    <section class="tela" id="tela-form" aria-labelledby="titulo-form" hidden>
+      <button type="button" class="btn-voltar" data-voltar="tela-inicio">
+        <span aria-hidden="true">←</span> Voltar
+      </button>
+
+      <h2 id="titulo-form">Sobre a sua encomenda</h2>
+      <p class="secao-sub">Preencha os campos abaixo. Leva menos de 2 minutos.</p>
+
+      <!-- novalidate: usamos validação própria, com mensagens em linguagem simples -->
+      <form id="form-calculo" novalidate autocomplete="off">
+
+        <!-- 1. Nome do produto -->
+        <div class="campo">
+          <label for="nome">Nome do produto ou encomenda</label>
+          <!-- list: sugere os produtos que ela já salvou -->
+          <input type="text" id="nome" name="nome" placeholder="Bolo de cenoura"
+                 maxlength="90" list="produtos-salvos">
+          <datalist id="produtos-salvos"></datalist>
+          <p class="ajuda">Exemplo: Bolo de cenoura, cento de brigadeiro, torta de morango.</p>
+          <p class="dica-preenchido oculto" id="dica-preenchido">
+            Valores do seu produto salvo já preenchidos. É só conferir.
+          </p>
+          <p class="erro" id="erro-nome" role="alert"></p>
+        </div>
+
+        <!-- 2. Ingredientes -->
+        <div class="campo">
+          <label for="ingredientes">Custo dos ingredientes</label>
+          <div class="input-moeda">
+            <span class="prefixo" aria-hidden="true">R$</span>
+            <input type="text" id="ingredientes" name="ingredientes"
+                   inputmode="decimal" placeholder="0,00">
+          </div>
+          <p class="ajuda">Some tudo que você gastou com ingredientes.</p>
+          <p class="erro" id="erro-ingredientes" role="alert"></p>
+        </div>
+
+        <!-- 3. Embalagem -->
+        <div class="campo">
+          <label for="embalagem">Custo da embalagem</label>
+          <div class="input-moeda">
+            <span class="prefixo" aria-hidden="true">R$</span>
+            <input type="text" id="embalagem" name="embalagem"
+                   inputmode="decimal" placeholder="0,00">
+          </div>
+          <p class="ajuda">Caixa, bandeja, saco, laço, etiqueta ou qualquer embalagem.</p>
+          <p class="erro" id="erro-embalagem" role="alert"></p>
+        </div>
+
+        <!-- 4. Custos extras -->
+        <div class="campo">
+          <label for="extras">Custos extras</label>
+          <div class="input-moeda">
+            <span class="prefixo" aria-hidden="true">R$</span>
+            <input type="text" id="extras" name="extras"
+                   inputmode="decimal" placeholder="0,00">
+          </div>
+          <p class="ajuda">Gás, energia, transporte, taxas ou outros gastos.</p>
+          <p class="erro" id="erro-extras" role="alert"></p>
+        </div>
+
+        <hr class="divisor">
+
+        <!-- 5. Tempo de trabalho -->
+        <div class="campo">
+          <label for="horas">Tempo de trabalho em horas</label>
+          <div class="input-sufixo">
+            <input type="text" id="horas" name="horas"
+                   inputmode="decimal" placeholder="3">
+            <span class="sufixo" aria-hidden="true">horas</span>
+          </div>
+          <p class="ajuda">Quanto tempo você gastou para produzir esse pedido?</p>
+          <p class="erro" id="erro-horas" role="alert"></p>
+        </div>
+
+        <!-- 6. Valor da hora -->
+        <div class="campo">
+          <label for="valorHora">Valor da sua hora de trabalho</label>
+          <div class="input-moeda">
+            <span class="prefixo" aria-hidden="true">R$</span>
+            <input type="text" id="valorHora" name="valorHora"
+                   inputmode="decimal" placeholder="25,00">
+          </div>
+          <p class="ajuda">Quanto você quer receber por hora trabalhada?</p>
+          <div class="chips" data-alvo="valorHora" data-tipo="moeda">
+            <button type="button" class="chip" data-valor="20">R$ 20</button>
+            <button type="button" class="chip" data-valor="25">R$ 25</button>
+            <button type="button" class="chip" data-valor="35">R$ 35</button>
+            <button type="button" class="chip" data-valor="50">R$ 50</button>
+          </div>
+          <button type="button" class="btn btn--texto" id="btn-assistente-hora"
+                  aria-expanded="false" aria-controls="assistente-hora">
+            Não sei quanto vale minha hora
+          </button>
+
+          <section class="assistente-hora oculto" id="assistente-hora"
+                   aria-labelledby="titulo-assistente-hora">
+            <h3 id="titulo-assistente-hora">Vamos descobrir juntas</h3>
+            <p class="secao-sub">
+              Dividimos quanto você deseja receber no mês pelas horas que realmente consegue dedicar à produção.
+            </p>
+            <div class="assistente-grade">
+              <div class="campo">
+                <label for="rendaMensal">Quanto deseja receber por mês?</label>
+                <div class="input-moeda">
+                  <span class="prefixo" aria-hidden="true">R$</span>
+                  <input type="text" id="rendaMensal" inputmode="decimal" placeholder="3.000,00">
+                </div>
+              </div>
+              <div class="campo">
+                <label for="horasMensais">Quantas horas por mês consegue produzir?</label>
+                <div class="input-sufixo">
+                  <input type="text" id="horasMensais" inputmode="decimal" placeholder="120">
+                  <span class="sufixo" aria-hidden="true">horas</span>
+                </div>
+                <p class="ajuda">Conte apenas as horas disponíveis para produzir e atender pedidos.</p>
+              </div>
+            </div>
+            <p class="erro" id="erro-assistente-hora" role="alert"></p>
+            <p class="assistente-resultado oculto" id="resultado-assistente-hora" role="status"></p>
+            <button type="button" class="btn btn--secundario" id="btn-calcular-hora">
+              Usar este valor por hora
+            </button>
+          </section>
+          <p class="erro" id="erro-valorHora" role="alert"></p>
+        </div>
+
+        <hr class="divisor">
+
+        <!-- 7. Quantidade -->
+        <div class="campo">
+          <p class="grupo-rotulo">Quantidade produzida</p>
+          <div class="linha-quantidade">
+            <div class="subcampo">
+              <label for="quantidade">Quantidade</label>
+              <input type="text" id="quantidade" name="quantidade"
+                     inputmode="decimal" placeholder="1">
+            </div>
+            <div class="subcampo">
+              <label for="unidade">Como você vende?</label>
+              <select id="unidade" name="unidade">
+                <option value="unidade">Unidade</option>
+                <option value="fatia">Fatia</option>
+                <option value="quilo">Quilo</option>
+                <option value="duzia">Dúzia</option>
+                <option value="cento">Cento</option>
+                <option value="encomenda">Encomenda</option>
+              </select>
+            </div>
+          </div>
+          <p class="ajuda" id="ajuda-quantidade">Exemplo: 1 bolo ou 20 unidades.</p>
+          <p class="erro" id="erro-quantidade" role="alert"></p>
+        </div>
+
+        <!-- 8. Margem de lucro -->
+        <div class="campo">
+          <label for="margem">Margem de lucro desejada</label>
+          <div class="input-sufixo">
+            <input type="text" id="margem" name="margem"
+                   inputmode="decimal" placeholder="30">
+            <span class="sufixo" aria-hidden="true">%</span>
+          </div>
+          <p class="ajuda">Sugestão: entre 20% e 40%.</p>
+          <div class="chips" data-alvo="margem" data-tipo="numero">
+            <button type="button" class="chip" data-valor="20">20%</button>
+            <button type="button" class="chip" data-valor="30">30%</button>
+            <button type="button" class="chip" data-valor="40">40%</button>
+            <button type="button" class="chip" data-valor="50">50%</button>
+          </div>
+          <p class="ajuda ajuda-destaque" id="ajuda-margem">
+            Com margem de 30%, a cada R$ 100 vendidos, R$ 30 ficam como lucro.
+          </p>
+          <p class="erro" id="erro-margem" role="alert"></p>
+        </div>
+
+        <!-- Resumo de erros gerais -->
+        <p class="aviso-geral oculto" id="aviso-geral" role="alert"></p>
+
+        <button type="submit" class="btn btn--principal btn--largo">
+          Calcular preço
+        </button>
+        <button type="button" class="btn btn--texto" id="btn-limpar-form">
+          Limpar campos
+        </button>
+      </form>
+    </section>
+
+    <!-- ===================== TELA 3: RESULTADO ===================== -->
+    <section class="tela" id="tela-resultado" aria-labelledby="titulo-resultado" hidden>
+      <button type="button" class="btn-voltar" data-voltar="tela-form">
+        <span aria-hidden="true">←</span> Ajustar valores
+      </button>
+
+      <h2 id="titulo-resultado">Seu preço está pronto</h2>
+      <p class="secao-sub" id="resultado-produto">—</p>
+
+      <!-- Aviso quando os valores salvos estão velhos -->
+      <p class="aviso-antigo oculto" id="aviso-antigo"></p>
+
+      <!-- Card de destaque: preço recomendado -->
+      <div class="card card--destaque">
+        <span class="card-rotulo">Sugestão para cobrar</span>
+        <strong class="card-valor card-valor--grande" id="r-sugerido">R$ 0,00</strong>
+        <span class="card-nota">Arredondado para cima para facilitar a cobrança</span>
+        <span class="card-calculado">Preço calculado: <strong id="r-recomendado">R$ 0,00</strong></span>
+      </div>
+
+      <!-- Demais cards -->
+      <div class="grade-cards">
+        <div class="card">
+          <span class="card-rotulo">Custo total da produção</span>
+          <strong class="card-valor" id="r-custo-total">R$ 0,00</strong>
+          <span class="card-nota">Ingredientes + embalagem + extras + mão de obra</span>
+        </div>
+
+        <div class="card">
+          <span class="card-rotulo">Valor da mão de obra</span>
+          <strong class="card-valor" id="r-mao-obra">R$ 0,00</strong>
+          <span class="card-nota">O seu trabalho, já contado no custo</span>
+        </div>
+
+        <div class="card card--alerta">
+          <span class="card-rotulo">Preço mínimo (sem prejuízo)</span>
+          <strong class="card-valor" id="r-minimo">R$ 0,00</strong>
+          <span class="card-nota">Abaixo disso você trabalha de graça</span>
+        </div>
+
+        <div class="card" id="card-unidade">
+          <span class="card-rotulo" id="r-unidade-rotulo">Preço por unidade</span>
+          <strong class="card-valor" id="r-unidade">R$ 0,00</strong>
+          <span class="card-nota" id="r-unidade-nota">Valor de cada item da encomenda</span>
+        </div>
+
+        <div class="card card--positivo">
+          <span class="card-rotulo">Lucro estimado</span>
+          <strong class="card-valor" id="r-lucro">R$ 0,00</strong>
+          <span class="card-nota">O que sobra depois de pagar tudo e o seu trabalho</span>
+        </div>
+      </div>
+
+      <!-- Interpretação em linguagem simples -->
+      <div class="bloco-explicacao">
+        <h3>O que isso quer dizer</h3>
+        <p id="texto-explicacao">—</p>
+      </div>
+
+      <!-- Mensagem para WhatsApp -->
+      <div class="bloco-whats">
+        <h3>Mensagem pronta pro cliente</h3>
+        <p class="secao-sub">Copie e cole no WhatsApp.</p>
+        <div class="balao" id="mensagem-whats">—</div>
+        <a class="btn btn--apoio btn--largo" id="btn-enviar-whats"
+           href="#" target="_blank" rel="noopener noreferrer">
+          Enviar pelo WhatsApp
+        </a>
+        <button type="button" class="btn btn--secundario" id="btn-copiar-msg">
+          Copiar mensagem
+        </button>
+      </div>
+
+      <!-- Botões finais -->
+      <div class="acoes-finais">
+        <button type="button" class="btn btn--secundario" id="btn-novo">Novo cálculo</button>
+        <button type="button" class="btn btn--secundario" id="btn-copiar-orcamento">Copiar orçamento</button>
+        <button type="button" class="btn btn--texto btn--perigo oculto" id="btn-excluir-produto">
+          Excluir este produto
+        </button>
+        <button type="button" class="btn btn--texto btn--perigo" id="btn-limpar-tudo">Limpar tudo</button>
+      </div>
+
+      <section class="bloco-feedback" aria-labelledby="titulo-feedback">
+        <h3 id="titulo-feedback">Ajude a melhorar a calculadora</h3>
+        <p class="secao-sub">Sentiu falta de alguma coisa ou encontrou uma dificuldade? Conte para a gente.</p>
+        <label for="feedback-texto">Sua sugestão</label>
+        <textarea id="feedback-texto" maxlength="1000"
+                  placeholder="Escreva aqui sua ideia ou dificuldade..."></textarea>
+        <p class="erro" id="erro-feedback" role="alert"></p>
+        <button type="button" class="btn btn--secundario" id="btn-enviar-feedback">
+          Enviar sugestão
+        </button>
+        <p class="feedback-nota" id="feedback-nota">
+          O envio abrirá o aplicativo de e-mail do seu aparelho.
+        </p>
+      </section>
+    </section>
+
+  </main>
+
+  <footer class="rodape">
+    <p>Os valores são uma sugestão baseada nos custos que você informou.</p>
+    <p class="mapa-chamada">
+      Quer conhecer mais soluções digitais?
+      <a href="https://mapasolucoesdigitais.com.br/" target="_blank" rel="noopener noreferrer">Conheça a MAPA</a>.
+    </p>
+  </footer>
+
+  <!-- Aviso flutuante (toast) -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Confirmação visual para ações que apagam informações -->
+  <div class="modal-overlay oculto" id="modal-confirmacao">
+    <section class="modal-card modal-card--confirmacao" role="dialog" aria-modal="true"
+             aria-labelledby="modal-confirmacao-titulo" aria-describedby="modal-confirmacao-texto">
+      <div class="modal-icone-aviso" aria-hidden="true">!</div>
+      <h2 id="modal-confirmacao-titulo">Confirmar ação</h2>
+      <p class="modal-texto" id="modal-confirmacao-texto">—</p>
+      <div class="modal-acoes">
+        <button type="button" class="btn btn--secundario" id="modal-cancelar">Cancelar</button>
+        <button type="button" class="btn btn--perigo-solido" id="modal-confirmar">Confirmar</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Guia simples para criar um atalho -->
+  <div class="modal-overlay oculto" id="modal-atalho">
+    <section class="modal-card modal-card--guia" role="dialog" aria-modal="true"
+             aria-labelledby="modal-atalho-titulo">
+      <button type="button" class="modal-fechar" id="modal-atalho-fechar"
+              aria-label="Fechar instruções">×</button>
+      <h2 id="modal-atalho-titulo">Como deixar a calculadora sempre à mão</h2>
+      <p class="modal-intro">
+        O navegador não permite criar o atalho sozinho. Escolha seu aparelho e siga os passos abaixo.
+      </p>
+
+      <p class="aviso-atalho-local oculto" id="aviso-atalho-local">
+        Esta calculadora foi aberta como um arquivo. No computador, o atalho funciona normalmente.
+        No celular, “Adicionar à Tela de Início” é mais confiável quando a calculadora é aberta por um link publicado.
+      </p>
+
+      <div class="guia-atalho">
+        <section class="guia-passo">
+          <h3>iPhone ou iPad</h3>
+          <ol>
+            <li>Abra o link da calculadora no Safari.</li>
+            <li>Toque em Compartilhar.</li>
+            <li>Escolha “Adicionar à Tela de Início” e toque em Adicionar.</li>
+          </ol>
+        </section>
+
+        <section class="guia-passo">
+          <h3>Celular Android</h3>
+          <ol>
+            <li>Abra o link da calculadora no Chrome.</li>
+            <li>Toque no menu de três pontos.</li>
+            <li>Escolha “Adicionar à tela inicial” e confirme.</li>
+          </ol>
+        </section>
+
+        <section class="guia-passo guia-passo--computador">
+          <h3>Computador</h3>
+          <ul>
+            <li><strong>Arquivo baixado no Windows:</strong> clique nele com o botão direito e escolha “Enviar para” → “Área de trabalho (criar atalho)”.</li>
+            <li><strong>Chrome:</strong> menu de três pontos → “Transmitir, salvar e compartilhar” → “Criar atalho”.</li>
+            <li><strong>Edge:</strong> menu de três pontos → “Aplicativos” → “Instalar este site como aplicativo”.</li>
+          </ul>
+        </section>
+      </div>
+
+      <p class="guia-nota">Os nomes das opções podem mudar um pouco conforme a versão do aparelho ou navegador.</p>
+      <button type="button" class="btn btn--principal" id="modal-atalho-entendi">Entendi</button>
+    </section>
+  </div>
+
+  <script>
+/* ==========================================================================
+   Calculadora da Confeiteira — lógica da aplicação
+   JavaScript puro, sem dependências externas.
+   ========================================================================== */
+(function () {
+  'use strict';
+
+  /* ------------------------------------------------------------------
+     Configurações
+     ------------------------------------------------------------------ */
+  var CHAVE_V1      = 'calc-confeiteira:v1';  // versão antiga (só o último cálculo)
+  var CHAVE_STORAGE = 'calc-confeiteira:v2';  // versão atual (último + produtos)
+  var MARGEM_MAXIMA = 90;   // % — acima disso a fórmula explode
+  var MAX_PRODUTOS  = 40;   // limite da lista de produtos salvos
+  var DIAS_AVISO    = 60;   // avisa para revisar valores salvos há mais tempo que isso
+
+  /* Informe aqui o e-mail que receberá as sugestões antes de publicar.
+     Enquanto estiver vazio, o botão copia a mensagem para a cliente enviar
+     pelo canal de suporte informado na plataforma de venda. */
+  var EMAIL_FEEDBACK = 'mpapini.trezentos@gmail.com';
+
+  var UNIDADES = {
+    unidade:   { singular: 'unidade',   plural: 'unidades',   inteiro: true  },
+    fatia:     { singular: 'fatia',     plural: 'fatias',     inteiro: true  },
+    quilo:     { singular: 'quilo',     plural: 'quilos',     inteiro: false },
+    duzia:     { singular: 'dúzia',     plural: 'dúzias',     inteiro: true  },
+    cento:     { singular: 'cento',     plural: 'centos',     inteiro: true  },
+    encomenda: { singular: 'encomenda', plural: 'encomendas', inteiro: true  }
+  };
+
+  // Campos numéricos do formulário e como devem ser validados
+  var CAMPOS = [
+    { id: 'ingredientes', rotulo: 'o custo dos ingredientes', obrigatorio: true  },
+    { id: 'embalagem',    rotulo: 'o custo da embalagem',     obrigatorio: false },
+    { id: 'extras',       rotulo: 'os custos extras',         obrigatorio: false },
+    { id: 'horas',        rotulo: 'o tempo de trabalho',      obrigatorio: true  },
+    { id: 'valorHora',    rotulo: 'o valor da sua hora',      obrigatorio: true  },
+    { id: 'quantidade',   rotulo: 'a quantidade produzida',   obrigatorio: true  },
+    { id: 'margem',       rotulo: 'a margem de lucro',        obrigatorio: true  }
+  ];
+
+  var NOME_PADRAO = 'sua encomenda'; // usado quando ela não digita o nome
+
+  /* ------------------------------------------------------------------
+     Atalhos de DOM
+     ------------------------------------------------------------------ */
+  function $(id) { return document.getElementById(id); }
+  function $$(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+
+  /* ------------------------------------------------------------------
+     1. Conversão e formatação de números no padrão brasileiro
+     ------------------------------------------------------------------ */
+
+  /**
+   * Converte o texto digitado em número.
+   * Aceita: "12,50"  "12.50"  "1.234,56"  "1,234.56"  "R$ 30"  "1.500"
+   * Regra para o ponto sozinho: se vier seguido de exatamente 3 dígitos
+   * (ex.: "1.500"), é separador de milhar; caso contrário é decimal ("12.50").
+   * Retorna NaN quando não é possível interpretar.
+   */
+  function paraNumero(texto) {
+    if (texto === null || texto === undefined) return NaN;
+
+    var s = String(texto).trim();
+    if (s === '') return NaN;
+
+    // Remove símbolo de moeda, espaços comuns e espaços não separáveis
+    s = s.replace(/R\$/gi, '').replace(/[\s ]/g, '');
+    if (s === '') return NaN;
+
+    // Só é permitido dígito, ponto, vírgula e sinal de menos
+    if (/[^0-9.,-]/.test(s)) return NaN;
+
+    var temVirgula = s.indexOf(',') !== -1;
+    var temPonto   = s.indexOf('.') !== -1;
+
+    if (temVirgula && temPonto) {
+      // O separador que aparece por último é o decimal
+      if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
+        s = s.replace(/\./g, '').replace(',', '.');   // 1.234,56
+      } else {
+        s = s.replace(/,/g, '');                      // 1,234.56
+      }
+    } else if (temVirgula) {
+      s = s.replace(/,/g, '.');                       // 12,50
+    } else if (temPonto) {
+      var partes = s.split('.');
+      if (partes.length > 2) {
+        s = s.replace(/\./g, '');                     // 1.234.567
+      } else if (partes[1].length === 3 && partes[0].length > 0) {
+        s = partes[0] + partes[1];                    // 1.500 -> 1500
+      }
+      // senão mantém como decimal: 12.50
+    }
+
+    var n = Number(s);
+    return isFinite(n) ? n : NaN;
+  }
+
+  /** Formata um número como moeda brasileira: 1234.5 -> "R$ 1.234,50" */
+  function paraReais(valor) {
+    if (!isFinite(valor)) valor = 0;
+    try {
+      return valor.toLocaleString('pt-BR', {
+        style: 'currency', currency: 'BRL',
+        minimumFractionDigits: 2, maximumFractionDigits: 2
+      });
+    } catch (e) {
+      // Fallback caso o navegador não suporte Intl com pt-BR
+      return 'R$ ' + valor.toFixed(2).replace('.', ',');
+    }
+  }
+
+  /** Formata quantidade sem casas decimais desnecessárias: 20 -> "20", 1.5 -> "1,5" */
+  function formataQuantidade(n) {
+    var s = (Math.round(n * 100) / 100).toString();
+    return s.replace('.', ',');
+  }
+
+  function unidadeSegura(valor) {
+    return UNIDADES[valor] ? valor : 'unidade';
+  }
+
+  function nomeDaUnidade(unidade, quantidade) {
+    var u = UNIDADES[unidadeSegura(unidade)];
+    // Em português, frações menores que 1 também ficam naturais no singular:
+    // "0,5 quilo", e não "0,5 quilos".
+    return (quantidade === 1 || (!u.inteiro && quantidade > 0 && quantidade < 1))
+      ? u.singular
+      : u.plural;
+  }
+
+  /**
+   * Arredondamento comercial sempre para cima:
+   * até R$ 50, de R$ 1 em R$ 1; até R$ 200, de R$ 5 em R$ 5;
+   * acima disso, de R$ 10 em R$ 10.
+   */
+  function arredondarParaCima(valor) {
+    var passo = valor <= 50 ? 1 : (valor <= 200 ? 5 : 10);
+    return Math.ceil((valor - 0.0000001) / passo) * passo;
+  }
+
+  /* ------------------------------------------------------------------
+     2. Cálculo (fórmulas do produto)
+     ------------------------------------------------------------------ */
+
+  /**
+   * Recebe os valores já convertidos em número e devolve todos os resultados.
+   * A margem é tratada como margem SOBRE O PREÇO DE VENDA:
+   *   preço = custo / (1 - margem)
+   */
+  function calcular(dados) {
+    // Cálculos antigos, salvos antes desta versão, não tinham uma unidade.
+    dados.unidade = unidadeSegura(dados.unidade);
+    var custoBase  = dados.ingredientes + dados.embalagem + dados.extras;
+    var maoObra    = dados.horas * dados.valorHora;
+    var custoTotal = custoBase + maoObra;
+
+    var precoMinimo      = custoTotal;
+    var margemDecimal    = dados.margem / 100;
+    var precoRecomendado = custoTotal / (1 - margemDecimal);
+    var precoSugerido    = arredondarParaCima(precoRecomendado);
+    var precoUnidade     = precoSugerido / dados.quantidade;
+    var lucro            = precoSugerido - custoTotal;
+
+    return {
+      custoBase:        custoBase,
+      maoObra:          maoObra,
+      custoTotal:       custoTotal,
+      precoMinimo:      precoMinimo,
+      precoRecomendado: precoRecomendado,
+      precoSugerido:    precoSugerido,
+      precoUnidade:     precoUnidade,
+      lucro:            lucro
+    };
+  }
+
+  /* ------------------------------------------------------------------
+     3. Validação
+     ------------------------------------------------------------------ */
+
+  function limparErros() {
+    $$('.erro').forEach(function (el) {
+      el.textContent = '';
+      el.classList.remove('visivel');
+    });
+    $$('.campo').forEach(function (el) { el.classList.remove('campo--erro'); });
+    var geral = $('aviso-geral');
+    geral.classList.add('oculto');
+    geral.textContent = '';
+  }
+
+  function mostrarErro(campoId, mensagem) {
+    var alvo = $('erro-' + campoId);
+    if (alvo) {
+      alvo.textContent = mensagem;
+      alvo.classList.add('visivel');
+    }
+    var input = $(campoId);
+    if (input) {
+      var caixa = input.closest('.campo');
+      if (caixa) caixa.classList.add('campo--erro');
+    }
+  }
+
+  /**
+   * Lê o formulário, valida e devolve { ok: true, dados } ou { ok: false }.
+   */
+  function lerEValidar() {
+    limparErros();
+
+    var erros = [];
+    var nomeDigitado = $('nome').value.trim();
+
+    var dados = {
+      nome: nomeDigitado || NOME_PADRAO,
+      // Guarda se ela realmente digitou um nome — só assim vira "produto salvo"
+      temNome: !!nomeDigitado,
+      unidade: unidadeSegura($('unidade').value)
+    };
+
+    CAMPOS.forEach(function (campo) {
+      var bruto = $(campo.id).value.trim();
+
+      // Campos opcionais vazios contam como zero
+      if (bruto === '') {
+        if (campo.obrigatorio) {
+          erros.push({ id: campo.id, msg: 'Preencha ' + campo.rotulo + ' para continuar.' });
+          dados[campo.id] = NaN;
+        } else {
+          dados[campo.id] = 0;
+        }
+        return;
+      }
+
+      var n = paraNumero(bruto);
+
+      if (isNaN(n)) {
+        erros.push({ id: campo.id, msg: 'Digite apenas números aqui. Exemplo: 12,50.' });
+        dados[campo.id] = NaN;
+        return;
+      }
+
+      if (n < 0) {
+        erros.push({ id: campo.id, msg: 'Esse valor não pode ser negativo.' });
+        dados[campo.id] = NaN;
+        return;
+      }
+
+      dados[campo.id] = n;
+    });
+
+    // Regras específicas (só checa se o campo passou nas regras gerais)
+    if (!isNaN(dados.horas) && dados.horas <= 0) {
+      erros.push({ id: 'horas', msg: 'Informe quantas horas você trabalhou nesse pedido.' });
+    }
+    if (!isNaN(dados.valorHora) && dados.valorHora <= 0) {
+      erros.push({ id: 'valorHora', msg: 'Seu trabalho vale alguma coisa. Informe um valor por hora.' });
+    }
+    if (!isNaN(dados.quantidade)) {
+      var regraUnidade = UNIDADES[dados.unidade];
+      if (regraUnidade.inteiro && (dados.quantidade < 1 || Math.floor(dados.quantidade) !== dados.quantidade)) {
+        erros.push({ id: 'quantidade', msg: 'Para ' + regraUnidade.plural + ', use um número inteiro a partir de 1.' });
+      } else if (!regraUnidade.inteiro && dados.quantidade <= 0) {
+        erros.push({ id: 'quantidade', msg: 'A quantidade em quilos precisa ser maior que zero.' });
+      }
+    }
+    if (!isNaN(dados.margem) && dados.margem >= MARGEM_MAXIMA) {
+      erros.push({ id: 'margem', msg: 'Use uma margem menor que ' + MARGEM_MAXIMA + '%. Acima disso o preço fica irreal.' });
+    }
+
+    if (erros.length) {
+      erros.forEach(function (e) { mostrarErro(e.id, e.msg); });
+
+      var geral = $('aviso-geral');
+      geral.textContent = erros.length === 1
+        ? 'Falta uma informação para calcular. Veja o campo marcado abaixo.'
+        : 'Faltam ' + erros.length + ' informações. Veja os campos marcados abaixo.';
+      geral.classList.remove('oculto');
+
+      // Leva a usuária até o primeiro campo com problema
+      var primeiro = $(erros[0].id);
+      if (primeiro) {
+        primeiro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        try { primeiro.focus({ preventScroll: true }); } catch (e2) { primeiro.focus(); }
+      }
+      return { ok: false };
+    }
+
+    return { ok: true, dados: dados };
+  }
+
+  /* ------------------------------------------------------------------
+     4. Textos gerados (explicação, WhatsApp, orçamento)
+     ------------------------------------------------------------------ */
+
+  function montarExplicacao(dados, r) {
+    var texto =
+      'Para ' + dados.nome.toLowerCase() + ', seu preço mínimo é ' + paraReais(r.precoMinimo) +
+      '. Esse valor apenas cobre os ingredientes, a embalagem, os gastos extras e o seu trabalho. ' +
+      'Com margem de ' + formataQuantidade(dados.margem) + '%, o preço calculado é ' +
+      paraReais(r.precoRecomendado) + '. Isso significa que, a cada R$ 100 vendidos, R$ ' +
+      formataQuantidade(dados.margem) + ' ficam como lucro. ' +
+      'Para facilitar a cobrança, a sugestão arredondada é ' + paraReais(r.precoSugerido) +
+      ', o que deixa aproximadamente ' + paraReais(r.lucro) + ' de lucro para você. ' +
+      'Ou seja: não cobre menos que ' + paraReais(r.precoMinimo) +
+      ', senão você vai trabalhar sem ganhar dinheiro.';
+
+    if (dados.quantidade > 1) {
+      texto += ' Para cada ' + nomeDaUnidade(dados.unidade, 1) +
+        ', o valor fica em ' + paraReais(r.precoUnidade) + '.';
+    }
+    return texto;
+  }
+
+  function montarMensagemWhats(dados, r) {
+    // Quando a usuária não digita o nome, evitamos "encomenda de sua encomenda"
+    var trecho = (dados.nome === NOME_PADRAO)
+      ? 'da sua encomenda'
+      : 'da encomenda de ' + dados.nome;
+
+    return 'Olá, o valor ' + trecho + ' fica em ' +
+           paraReais(r.precoSugerido) + '. Esse valor já considera os ingredientes, ' +
+           'preparo, embalagem e todo o cuidado para entregar um produto bonito e bem feito.';
+  }
+
+  function montarOrcamento(dados, r) {
+    var linhas = [
+      'ORÇAMENTO — ' + dados.nome.toUpperCase(),
+      '',
+      'Ingredientes: ' + paraReais(dados.ingredientes),
+      'Embalagem: ' + paraReais(dados.embalagem),
+      'Custos extras: ' + paraReais(dados.extras),
+      'Mão de obra (' + formataQuantidade(dados.horas) + 'h x ' + paraReais(dados.valorHora) + '): ' + paraReais(r.maoObra),
+      '',
+      'Custo total da produção: ' + paraReais(r.custoTotal),
+      'Preço mínimo (sem prejuízo): ' + paraReais(r.precoMinimo),
+      'Preço calculado: ' + paraReais(r.precoRecomendado),
+      'Sugestão para cobrar: ' + paraReais(r.precoSugerido),
+      'Lucro estimado: ' + paraReais(r.lucro),
+      '',
+      'Quantidade: ' + formataQuantidade(dados.quantidade) + ' ' + nomeDaUnidade(dados.unidade, dados.quantidade),
+      'Preço por ' + nomeDaUnidade(dados.unidade, 1) + ': ' + paraReais(r.precoUnidade),
+      'Margem aplicada: ' + formataQuantidade(dados.margem) + '%',
+      '',
+      'Calculado com a Calculadora da Confeiteira.'
+    ];
+    return linhas.join('\n');
+  }
+
+  /* ------------------------------------------------------------------
+     5. Armazenamento no navegador
+     Formato v2: { ultimo: {dados}, produtos: [ {id, nome, dados, preco, data} ] }
+     ------------------------------------------------------------------ */
+
+  /** Gera a chave única de um produto a partir do nome (ignora acento e maiúscula) */
+  function chaveDoNome(nome) {
+    var s = String(nome).toLowerCase().trim().replace(/\s+/g, ' ');
+    try {
+      s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // remove acentos
+    } catch (e) { /* navegador antigo: segue sem normalizar */ }
+    return s;
+  }
+
+  function lerEstado() {
+    var vazio = { ultimo: null, produtos: [] };
+    try {
+      var bruto = localStorage.getItem(CHAVE_STORAGE);
+      if (bruto) {
+        var estado = JSON.parse(bruto);
+        return {
+          ultimo:   estado.ultimo || null,
+          produtos: Array.isArray(estado.produtos) ? estado.produtos : []
+        };
+      }
+      // Migração: quem já usava a versão anterior não perde o cálculo salvo
+      var antigo = localStorage.getItem(CHAVE_V1);
+      if (antigo) {
+        var dadosAntigos = JSON.parse(antigo);
+        var migrado = { ultimo: dadosAntigos, produtos: [] };
+        gravarEstado(migrado);
+        localStorage.removeItem(CHAVE_V1);
+        return migrado;
+      }
+    } catch (e) { /* modo privado ou dado corrompido: começa do zero */ }
+    return vazio;
+  }
+
+  function gravarEstado(estado) {
+    try {
+      localStorage.setItem(CHAVE_STORAGE, JSON.stringify(estado));
+    } catch (e) { /* storage cheio ou bloqueado: seguimos sem salvar */ }
+  }
+
+  /**
+   * Salva (ou atualiza) um produto na lista. Produtos com o mesmo nome
+   * são atualizados no lugar, em vez de duplicar.
+   */
+  function salvarProduto(dados, r) {
+    var estado = lerEstado();
+    estado.ultimo = dados;
+
+    if (dados.temNome) {
+      var id = chaveDoNome(dados.nome);
+      var registro = {
+        id:    id,
+        nome:  dados.nome,
+        dados: dados,
+        preco: r.precoSugerido,
+        data:  new Date().toISOString()
+      };
+
+      // Remove a versão anterior desse mesmo produto, se existir
+      estado.produtos = estado.produtos.filter(function (p) { return p.id !== id; });
+      estado.produtos.unshift(registro);           // o mais recente vai para o topo
+      estado.produtos = estado.produtos.slice(0, MAX_PRODUTOS);
+    }
+
+    gravarEstado(estado);
+    return estado;
+  }
+
+  function excluirProduto(id) {
+    var estado = lerEstado();
+    estado.produtos = estado.produtos.filter(function (p) { return p.id !== id; });
+    gravarEstado(estado);
+    return estado;
+  }
+
+  function apagarTudo() {
+    try {
+      localStorage.removeItem(CHAVE_STORAGE);
+      localStorage.removeItem(CHAVE_V1);
+    } catch (e) {}
+  }
+
+  /* ------------------------------------------------------------------
+     6. Datas em linguagem simples
+     ------------------------------------------------------------------ */
+
+  function diasDesde(iso) {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return 0;
+    return Math.floor((Date.now() - d.getTime()) / 86400000);
+  }
+
+  function textoData(iso) {
+    var dias = diasDesde(iso);
+    if (dias <= 0) return 'atualizado hoje';
+    if (dias === 1) return 'atualizado ontem';
+    if (dias < 30) return 'atualizado há ' + dias + ' dias';
+
+    var d = new Date(iso);
+    var dd = ('0' + d.getDate()).slice(-2);
+    var mm = ('0' + (d.getMonth() + 1)).slice(-2);
+    return 'atualizado em ' + dd + '/' + mm + '/' + d.getFullYear();
+  }
+
+  /* ------------------------------------------------------------------
+     7. Lista "Meus produtos"
+     ------------------------------------------------------------------ */
+
+  function renderizarProdutos() {
+    var estado   = lerEstado();
+    var bloco    = $('bloco-produtos');
+    var lista    = $('lista-produtos');
+    var datalist = $('produtos-salvos');
+    var hero     = document.querySelector('.hero');
+    var tela     = $('tela-inicio');
+
+    lista.textContent = '';
+    datalist.textContent = '';
+
+    if (!estado.produtos.length) {
+      // Primeira visita: apresentação completa do produto
+      bloco.classList.add('oculto');
+      $('lista-beneficios').classList.remove('oculto');
+      hero.classList.remove('hero--compacto');
+      $('btn-comecar').textContent = 'Começar cálculo';
+      if (hero.nextElementSibling !== bloco) tela.insertBefore(hero, bloco);
+    } else {
+      /* Já tem produtos salvos: ela abriu o app para responder um cliente.
+         A lista vira o assunto principal e o hero encolhe. */
+      bloco.classList.remove('oculto');
+      $('lista-beneficios').classList.add('oculto');
+      hero.classList.add('hero--compacto');
+      $('btn-comecar').textContent = 'Calcular um produto novo';
+      if (bloco.nextElementSibling !== hero) tela.insertBefore(bloco, hero);
+
+      estado.produtos.forEach(function (p) {
+        var li  = document.createElement('li');
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'produto-btn';
+        btn.dataset.id = p.id;
+
+        // textContent (e não innerHTML) — nome digitado nunca vira HTML
+        var nome = document.createElement('span');
+        nome.className = 'produto-nome';
+        nome.textContent = p.nome;
+
+        var preco = document.createElement('span');
+        preco.className = 'produto-preco';
+        preco.textContent = paraReais(p.preco);
+
+        var meta = document.createElement('span');
+        meta.className = 'produto-meta';
+        meta.textContent = textoData(p.data);
+
+        btn.appendChild(nome);
+        btn.appendChild(preco);
+        btn.appendChild(meta);
+        btn.setAttribute('aria-label', p.nome + ', ' + paraReais(p.preco) + ', ' + textoData(p.data));
+
+        li.appendChild(btn);
+        lista.appendChild(li);
+
+        // Sugestão no campo de nome do formulário
+        var opcao = document.createElement('option');
+        opcao.value = p.nome;
+        datalist.appendChild(opcao);
+      });
+    }
+
+    // O botão "último cálculo" só faz sentido para cálculos sem nome
+    var btnUltimo = $('btn-ultimo');
+    if (estado.ultimo && !estado.ultimo.temNome) {
+      btnUltimo.classList.remove('oculto');
+    } else {
+      btnUltimo.classList.add('oculto');
+    }
+  }
+
+  /* ------------------------------------------------------------------
+     8. Formulário: preencher, limpar, chips
+     ------------------------------------------------------------------ */
+
+  function preencherFormulario(dados) {
+    if (!dados) return;
+    $('nome').value = (dados.nome && dados.nome !== NOME_PADRAO) ? dados.nome : '';
+    $('unidade').value = unidadeSegura(dados.unidade);
+    CAMPOS.forEach(function (campo) {
+      var v = dados[campo.id];
+      $(campo.id).value = (typeof v === 'number' && isFinite(v))
+        ? String(v).replace('.', ',')
+        : '';
+    });
+    sincronizarChips();
+    atualizarAjudaMargem();
+    atualizarAjudaQuantidade();
+  }
+
+  function limparFormulario() {
+    $('form-calculo').reset();
+    limparErros();
+    $('dica-preenchido').classList.add('oculto');
+    fecharAssistenteHora();
+    sincronizarChips();
+    atualizarAjudaMargem();
+    atualizarAjudaQuantidade();
+  }
+
+  function sincronizarChips() {
+    $$('.chips').forEach(function (grupo) {
+      var valorAtual = paraNumero($(grupo.dataset.alvo).value);
+      grupo.querySelectorAll('.chip').forEach(function (chip) {
+        var ativo = Number(chip.dataset.valor) === valorAtual;
+        chip.classList.toggle('chip--ativo', ativo);
+        chip.setAttribute('aria-pressed', ativo ? 'true' : 'false');
+      });
+    });
+  }
+
+  function atualizarAjudaMargem() {
+    var margem = paraNumero($('margem').value);
+    var ajuda = $('ajuda-margem');
+    if (isFinite(margem) && margem >= 0 && margem < 100) {
+      ajuda.textContent = 'Com margem de ' + formataQuantidade(margem) +
+        '%, a cada R$ 100 vendidos, R$ ' + formataQuantidade(margem) +
+        ' ficam como lucro.';
+    } else {
+      ajuda.textContent = 'Margem é a parte do preço de venda que fica como lucro. Sugestão: entre 20% e 40%.';
+    }
+  }
+
+  function atualizarAjudaQuantidade() {
+    var unidade = unidadeSegura($('unidade').value);
+    var ajuda = $('ajuda-quantidade');
+    if (unidade === 'quilo') {
+      ajuda.textContent = 'Para quilos, você pode usar vírgula. Exemplo: 0,5 ou 1,5.';
+    } else {
+      ajuda.textContent = 'Para ' + UNIDADES[unidade].plural +
+        ', use um número inteiro. Exemplo: 1, 12 ou 100.';
+    }
+  }
+
+  function fecharAssistenteHora() {
+    $('assistente-hora').classList.add('oculto');
+    $('btn-assistente-hora').setAttribute('aria-expanded', 'false');
+    $('btn-assistente-hora').textContent = 'Não sei quanto vale minha hora';
+    $('erro-assistente-hora').textContent = '';
+    $('erro-assistente-hora').classList.remove('visivel');
+    $('resultado-assistente-hora').classList.add('oculto');
+  }
+
+  function alternarAssistenteHora() {
+    var painel = $('assistente-hora');
+    var abrir = painel.classList.contains('oculto');
+    painel.classList.toggle('oculto', !abrir);
+    $('btn-assistente-hora').setAttribute('aria-expanded', abrir ? 'true' : 'false');
+    $('btn-assistente-hora').textContent = abrir
+      ? 'Fechar assistente de valor da hora'
+      : 'Não sei quanto vale minha hora';
+    if (abrir) $('rendaMensal').focus();
+  }
+
+  /** Todos os campos numéricos estão vazios? */
+  function formularioVazio() {
+    return CAMPOS.every(function (campo) { return $(campo.id).value.trim() === ''; });
+  }
+
+  /* ------------------------------------------------------------------
+     9. Navegação, avisos e cópia
+     ------------------------------------------------------------------ */
+
+  /* Foco no primeiro campo.
+     Feito na hora (dentro do gesto de toque) por dois motivos:
+     o iOS ignora focus() fora do gesto, e um focus atrasado roubaria
+     o que a usuária já tivesse começado a digitar.
+     preventScroll evita brigar com a rolagem suave da troca de tela. */
+  function focarNome() {
+    var campo = $('nome');
+    try { campo.focus({ preventScroll: true }); } catch (e) { campo.focus(); }
+  }
+
+  function mostrarTela(id) {
+    $$('.tela').forEach(function (t) {
+      var ativa = (t.id === id);
+      t.hidden = !ativa;
+      t.classList.toggle('tela--ativa', ativa);
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* Janelas próprias: mais visíveis que o confirm() do navegador e acessíveis
+     por toque, teclado e leitor de tela. */
+  var acaoConfirmacao = null;
+  var focoAntesDoModal = null;
+
+  function abrirModal(id, seletorFoco) {
+    var modal = $(id);
+    focoAntesDoModal = document.activeElement;
+    modal.classList.remove('oculto');
+    document.body.classList.add('modal-aberto');
+
+    var primeiroFoco = seletorFoco ? modal.querySelector(seletorFoco) : null;
+    if (primeiroFoco) {
+      setTimeout(function () { primeiroFoco.focus(); }, 0);
+    }
+  }
+
+  function fecharModal(id) {
+    $(id).classList.add('oculto');
+    if (!document.querySelector('.modal-overlay:not(.oculto)')) {
+      document.body.classList.remove('modal-aberto');
+    }
+    if (focoAntesDoModal && document.contains(focoAntesDoModal)) {
+      focoAntesDoModal.focus();
+    }
+    focoAntesDoModal = null;
+  }
+
+  function abrirConfirmacao(configuracao) {
+    $('modal-confirmacao-titulo').textContent = configuracao.titulo;
+    $('modal-confirmacao-texto').textContent = configuracao.texto;
+    $('modal-confirmar').textContent = configuracao.confirmar;
+    acaoConfirmacao = configuracao.acao;
+    abrirModal('modal-confirmacao', '#modal-cancelar');
+  }
+
+  function fecharConfirmacao() {
+    acaoConfirmacao = null;
+    fecharModal('modal-confirmacao');
+  }
+
+  function executarConfirmacao() {
+    var acao = acaoConfirmacao;
+    acaoConfirmacao = null;
+    fecharModal('modal-confirmacao');
+    if (typeof acao === 'function') acao();
+  }
+
+  function abrirGuiaAtalho() {
+    $('aviso-atalho-local').classList.toggle('oculto', window.location.protocol !== 'file:');
+    abrirModal('modal-atalho', '#modal-atalho-fechar');
+  }
+
+  function fecharGuiaAtalho() {
+    fecharModal('modal-atalho');
+  }
+
+  function modalAberto() {
+    return document.querySelector('.modal-overlay:not(.oculto)');
+  }
+
+  function fecharModalAtivo() {
+    var aberto = modalAberto();
+    if (!aberto) return;
+    if (aberto.id === 'modal-confirmacao') fecharConfirmacao();
+    if (aberto.id === 'modal-atalho') fecharGuiaAtalho();
+  }
+
+  function manterFocoNoModal(ev) {
+    var aberto = modalAberto();
+    if (!aberto || ev.key !== 'Tab') return;
+
+    var itens = Array.prototype.slice.call(aberto.querySelectorAll(
+      'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )).filter(function (el) { return el.offsetParent !== null; });
+
+    if (!itens.length) return;
+    var primeiro = itens[0];
+    var ultimo = itens[itens.length - 1];
+
+    if (ev.shiftKey && document.activeElement === primeiro) {
+      ev.preventDefault();
+      ultimo.focus();
+    } else if (!ev.shiftKey && document.activeElement === ultimo) {
+      ev.preventDefault();
+      primeiro.focus();
+    }
+  }
+
+  var tempoToast = null;
+  function avisar(mensagem) {
+    var toast = $('toast');
+    toast.textContent = mensagem;
+    toast.classList.add('visivel');
+    clearTimeout(tempoToast);
+    tempoToast = setTimeout(function () {
+      toast.classList.remove('visivel');
+    }, 3200);
+  }
+
+  function copiar(texto, mensagemSucesso) {
+    // Caminho moderno — exige HTTPS ou localhost
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(texto).then(
+        function () { avisar(mensagemSucesso); },
+        function () { copiarPlanoB(texto, mensagemSucesso); }
+      );
+      return;
+    }
+    copiarPlanoB(texto, mensagemSucesso);
+  }
+
+  // Plano B: textarea temporária + execCommand (funciona ao abrir o arquivo local)
+  function copiarPlanoB(texto, mensagemSucesso) {
+    var area = document.createElement('textarea');
+    area.value = texto;
+    area.setAttribute('readonly', '');
+    area.style.position = 'fixed';
+    area.style.top = '-1000px';
+    document.body.appendChild(area);
+    area.select();
+    area.setSelectionRange(0, area.value.length);
+
+    var deuCerto = false;
+    try { deuCerto = document.execCommand('copy'); } catch (e) { deuCerto = false; }
+    document.body.removeChild(area);
+
+    avisar(deuCerto ? mensagemSucesso : 'Não deu para copiar aqui. Selecione o texto e copie manualmente.');
+  }
+
+  /* ------------------------------------------------------------------
+     10. Exibir os resultados
+     ------------------------------------------------------------------ */
+
+  var atual = null; // { dados, r, produtoId, data }
+
+  function exibirResultado(dados, r, origem) {
+    origem = origem || {};
+    dados.unidade = unidadeSegura(dados.unidade);
+    atual = {
+      dados: dados,
+      r: r,
+      produtoId: origem.produtoId || null,
+      data: origem.data || null
+    };
+
+    $('resultado-produto').textContent = dados.nome;
+
+    $('r-sugerido').textContent    = paraReais(r.precoSugerido);
+    $('r-recomendado').textContent = paraReais(r.precoRecomendado);
+    $('r-custo-total').textContent = paraReais(r.custoTotal);
+    $('r-mao-obra').textContent    = paraReais(r.maoObra);
+    $('r-minimo').textContent      = paraReais(r.precoMinimo);
+    $('r-unidade').textContent     = paraReais(r.precoUnidade);
+    $('r-lucro').textContent       = paraReais(r.lucro);
+
+    var unidadeSingular = nomeDaUnidade(dados.unidade, 1);
+    var unidadeQuantidade = nomeDaUnidade(dados.unidade, dados.quantidade);
+    $('r-unidade-rotulo').textContent = 'Preço por ' + unidadeSingular;
+    $('r-unidade-nota').textContent = dados.quantidade === 1
+      ? 'Você informou 1 ' + unidadeSingular + ', então este é o preço cheio'
+      : 'Valor de 1 ' + unidadeSingular + ', considerando ' +
+        formataQuantidade(dados.quantidade) + ' ' + unidadeQuantidade + ' no total';
+
+    $('texto-explicacao').textContent = montarExplicacao(dados, r);
+    $('mensagem-whats').textContent   = montarMensagemWhats(dados, r);
+    $('btn-enviar-whats').href = 'https://wa.me/?text=' + encodeURIComponent(montarMensagemWhats(dados, r));
+
+    // Aviso de valores antigos (só quando veio da lista de produtos salvos)
+    var aviso = $('aviso-antigo');
+    if (origem.data && diasDesde(origem.data) >= DIAS_AVISO) {
+      aviso.textContent = 'Esses valores foram salvos há ' + diasDesde(origem.data) +
+        ' dias. Vale conferir se o preço dos ingredientes mudou.';
+      aviso.classList.remove('oculto');
+    } else {
+      aviso.classList.add('oculto');
+    }
+
+    // Botão de excluir só aparece para produto salvo
+    var btnExcluir = $('btn-excluir-produto');
+    btnExcluir.textContent = 'Excluir este produto';
+    btnExcluir.dataset.confirmando = '';
+    btnExcluir.classList.toggle('oculto', !atual.produtoId);
+
+    mostrarTela('tela-resultado');
+  }
+
+  /** Abre um produto salvo: recalcula com os valores guardados */
+  function abrirProduto(id) {
+    var estado  = lerEstado();
+    var produto = null;
+    for (var i = 0; i < estado.produtos.length; i++) {
+      if (estado.produtos[i].id === id) { produto = estado.produtos[i]; break; }
+    }
+    if (!produto) return;
+
+    preencherFormulario(produto.dados);
+    exibirResultado(produto.dados, calcular(produto.dados), {
+      produtoId: produto.id,
+      data: produto.data
+    });
+  }
+
+  /* ------------------------------------------------------------------
+     11. Ligações de eventos
+     ------------------------------------------------------------------ */
+
+  function iniciar() {
+    renderizarProdutos();
+
+    // --- Tela inicial ---
+    $('btn-comecar').addEventListener('click', function () {
+      limparFormulario();
+      mostrarTela('tela-form');
+      focarNome();
+    });
+
+    $('btn-ultimo').addEventListener('click', function () {
+      var estado = lerEstado();
+      if (!estado.ultimo) return;
+      preencherFormulario(estado.ultimo);
+      var validacao = lerEValidar();
+      if (validacao.ok) {
+        exibirResultado(validacao.dados, calcular(validacao.dados));
+      } else {
+        mostrarTela('tela-form');
+      }
+    });
+
+    // --- Clique em um produto salvo (delegação de evento) ---
+    $('lista-produtos').addEventListener('click', function (ev) {
+      var btn = ev.target.closest('.produto-btn');
+      if (btn) abrirProduto(btn.dataset.id);
+    });
+
+    // --- Botões de voltar ---
+    $$('[data-voltar]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        mostrarTela(btn.dataset.voltar);
+      });
+    });
+
+    // --- Chips ---
+    $$('.chips').forEach(function (grupo) {
+      grupo.addEventListener('click', function (ev) {
+        var chip = ev.target.closest('.chip');
+        if (!chip) return;
+        $(grupo.dataset.alvo).value = String(chip.dataset.valor).replace('.', ',');
+        sincronizarChips();
+        if (grupo.dataset.alvo === 'margem') atualizarAjudaMargem();
+      });
+    });
+
+    // Ao digitar, limpa o erro daquele campo e atualiza os chips
+    $$('input[type="text"]').forEach(function (input) {
+      input.addEventListener('input', function () {
+        var caixa = input.closest('.campo');
+        if (caixa && caixa.classList.contains('campo--erro')) {
+          caixa.classList.remove('campo--erro');
+          var erro = $('erro-' + input.id);
+          if (erro) { erro.textContent = ''; erro.classList.remove('visivel'); }
+        }
+        sincronizarChips();
+        if (input.id === 'margem') atualizarAjudaMargem();
+      });
+    });
+
+    $('unidade').addEventListener('change', function () {
+      atualizarAjudaQuantidade();
+      var caixa = $('quantidade').closest('.campo');
+      if (caixa) caixa.classList.remove('campo--erro');
+      $('erro-quantidade').textContent = '';
+      $('erro-quantidade').classList.remove('visivel');
+    });
+
+    $('btn-assistente-hora').addEventListener('click', alternarAssistenteHora);
+
+    $('btn-calcular-hora').addEventListener('click', function () {
+      var renda = paraNumero($('rendaMensal').value);
+      var horas = paraNumero($('horasMensais').value);
+      var erro = $('erro-assistente-hora');
+      var resultado = $('resultado-assistente-hora');
+
+      erro.textContent = '';
+      erro.classList.remove('visivel');
+      resultado.classList.add('oculto');
+
+      if (!isFinite(renda) || renda <= 0 || !isFinite(horas) || horas <= 0) {
+        erro.textContent = 'Preencha uma renda mensal e uma quantidade de horas maiores que zero.';
+        erro.classList.add('visivel');
+        return;
+      }
+
+      var valorHora = renda / horas;
+      $('valorHora').value = valorHora.toFixed(2).replace('.', ',');
+      sincronizarChips();
+      resultado.textContent = 'Seu valor é ' + paraReais(valorHora) + ' por hora. Já preenchemos esse valor no cálculo.';
+      resultado.classList.remove('oculto');
+      avisar('Valor da hora preenchido: ' + paraReais(valorHora) + '.');
+    });
+
+    /* Autopreenchimento pelo nome:
+       se ela escolher/digitar o nome de um produto salvo e os campos ainda
+       estiverem vazios, trazemos os valores guardados. Nunca sobrescreve
+       algo que ela já digitou. */
+    $('nome').addEventListener('change', function () {
+      var digitado = $('nome').value.trim();
+      if (!digitado || !formularioVazio()) return;
+
+      var estado = lerEstado();
+      var chave  = chaveDoNome(digitado);
+      var achou  = null;
+      for (var i = 0; i < estado.produtos.length; i++) {
+        if (estado.produtos[i].id === chave) { achou = estado.produtos[i]; break; }
+      }
+      if (!achou) return;
+
+      preencherFormulario(achou.dados);
+      $('nome').value = digitado;          // mantém como ela escreveu
+      $('dica-preenchido').classList.remove('oculto');
+      avisar('Valores de "' + achou.nome + '" preenchidos.');
+    });
+
+    // --- Envio do formulário ---
+    $('form-calculo').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var validacao = lerEValidar();
+      if (!validacao.ok) return;
+
+      var dados = validacao.dados;
+      var r = calcular(dados);
+      salvarProduto(dados, r);
+      renderizarProdutos();
+
+      exibirResultado(dados, r, dados.temNome ? { produtoId: chaveDoNome(dados.nome) } : {});
+
+      if (dados.temNome) avisar('Salvo em Meus produtos.');
+    });
+
+    $('btn-limpar-form').addEventListener('click', function () {
+      abrirConfirmacao({
+        titulo: 'Limpar os campos preenchidos?',
+        texto: 'Tudo o que você digitou neste cálculo será apagado. Seus produtos já salvos continuarão guardados.',
+        confirmar: 'Sim, limpar campos',
+        acao: function () {
+          limparFormulario();
+          avisar('Campos limpos.');
+          focarNome();
+        }
+      });
+    });
+
+    // --- Janelas de confirmação e guia de atalho ---
+    $('modal-cancelar').addEventListener('click', fecharConfirmacao);
+    $('modal-confirmar').addEventListener('click', executarConfirmacao);
+    $('btn-ver-atalho').addEventListener('click', abrirGuiaAtalho);
+    $('modal-atalho-fechar').addEventListener('click', fecharGuiaAtalho);
+    $('modal-atalho-entendi').addEventListener('click', fecharGuiaAtalho);
+
+    $$('.modal-overlay').forEach(function (overlay) {
+      overlay.addEventListener('click', function (ev) {
+        if (ev.target === overlay) fecharModalAtivo();
+      });
+    });
+
+    document.addEventListener('keydown', function (ev) {
+      if (!modalAberto()) return;
+      if (ev.key === 'Escape') {
+        ev.preventDefault();
+        fecharModalAtivo();
+        return;
+      }
+      manterFocoNoModal(ev);
+    });
+
+    // --- Botões da tela de resultado ---
+    $('btn-copiar-msg').addEventListener('click', function () {
+      if (!atual) return;
+      copiar(
+        montarMensagemWhats(atual.dados, atual.r),
+        'Mensagem copiada! Agora é só colar no WhatsApp.'
+      );
+    });
+
+    $('btn-copiar-orcamento').addEventListener('click', function () {
+      if (!atual) return;
+      copiar(montarOrcamento(atual.dados, atual.r), 'Orçamento completo copiado!');
+    });
+
+    $('btn-enviar-feedback').addEventListener('click', function () {
+      var sugestao = $('feedback-texto').value.trim();
+      var erro = $('erro-feedback');
+      erro.textContent = '';
+      erro.classList.remove('visivel');
+
+      if (!sugestao) {
+        erro.textContent = 'Escreva sua sugestão antes de enviar.';
+        erro.classList.add('visivel');
+        $('feedback-texto').focus();
+        return;
+      }
+
+      var contexto = atual && atual.dados
+        ? '\n\nProduto que eu estava calculando: ' + atual.dados.nome
+        : '';
+      var assunto = 'Sugestão para a Calculadora da Confeiteira';
+      var corpo = 'Olá! Minha sugestão é:\n\n' + sugestao + contexto;
+
+      if (EMAIL_FEEDBACK) {
+        avisar('Abrindo seu aplicativo de e-mail...');
+        window.location.href = 'mailto:' + EMAIL_FEEDBACK +
+          '?subject=' + encodeURIComponent(assunto) +
+          '&body=' + encodeURIComponent(corpo);
+      } else {
+        copiar(corpo, 'Sugestão copiada. Envie pelo canal de suporte da plataforma.');
+      }
+    });
+
+    $('btn-novo').addEventListener('click', function () {
+      limparFormulario();
+      mostrarTela('tela-form');
+      focarNome();
+    });
+
+    /* Excluir produto — confirmação em dois toques, sem janela do navegador */
+    var tempoExcluir = null;
+    $('btn-excluir-produto').addEventListener('click', function () {
+      var btn = this;
+      if (!atual || !atual.produtoId) return;
+
+      if (btn.dataset.confirmando !== 'sim') {
+        btn.dataset.confirmando = 'sim';
+        btn.textContent = 'Toque de novo para confirmar a exclusão';
+        clearTimeout(tempoExcluir);
+        tempoExcluir = setTimeout(function () {
+          btn.dataset.confirmando = '';
+          btn.textContent = 'Excluir este produto';
+        }, 5000);
+        return;
+      }
+
+      clearTimeout(tempoExcluir);
+      excluirProduto(atual.produtoId);
+      renderizarProdutos();
+      limparFormulario();
+      atual = null;
+      mostrarTela('tela-inicio');
+      avisar('Produto excluído.');
+    });
+
+    $('btn-limpar-tudo').addEventListener('click', function () {
+      abrirConfirmacao({
+        titulo: 'Apagar todos os produtos salvos?',
+        texto: 'Esta ação apaga todo o histórico e o último cálculo deste aparelho. Não será possível recuperar essas informações.',
+        confirmar: 'Sim, apagar tudo',
+        acao: function () {
+          apagarTudo();
+          limparFormulario();
+          atual = null;
+          renderizarProdutos();
+          mostrarTela('tela-inicio');
+          avisar('Tudo limpo. Pode começar um cálculo novo.');
+        }
+      });
+    });
+
+    sincronizarChips();
+    atualizarAjudaMargem();
+    atualizarAjudaQuantidade();
+  }
+
+  // Inicia quando o HTML estiver pronto
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', iniciar);
+  } else {
+    iniciar();
+  }
+
+  // Exposto apenas para testes automatizados (não usado pela interface)
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+      paraNumero: paraNumero,
+      calcular: calcular,
+      paraReais: paraReais,
+      chaveDoNome: chaveDoNome
+    };
+  }
+})();
+
+</script>
+</body>
+</html>
